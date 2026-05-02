@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Nano Ai</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="side-head">
+    <div class="side-title">SafeGPT</div>
+    <button class="side-close" onclick="closeSidebar()">✕</button>
+  </div>
+  <button class="side-btn" onclick="newChat();closeSidebar()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Chat Baru
+  </button>
+  <button class="side-btn purple" onclick="toggleSysPanel();closeSidebar()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41M21 12h-2M5 12H3M12 21v-2M12 5V3"/></svg>
+    System Prompt
+  </button>
+  <button class="side-btn" onclick="openProfile();closeSidebar()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Edit Profil
+  </button>
+  <div class="history">
+    <div class="his-label">Riwayat</div>
+    <div id="his-list"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <button class="icon-btn" onclick="openSidebar()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+  </button>
+  <div class="logo-pill">
+    <div class="logo-icon">✦</div>
+    SafeGPT
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+    <div class="premium-badge" id="premium-badge">⭐ PRO</div>
+    <div id="usr-av" class="usr-av" onclick="openProfile()"></div>
+    <button class="icon-btn" onclick="newChat()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- SYS PANEL -->
+<div id="sys-panel">
+  <div class="sys-label">⚙ System Prompt Kustom</div>
+  <textarea id="sys-prompt-ta" placeholder="Tambahkan instruksi tambahan untuk AI..."></textarea>
+  <button id="sys-save-btn" onclick="saveSysPrompt()">Simpan & Tutup</button>
+</div>
+
+<!-- CHAT -->
+<div id="chat-window">
+  <div id="chat-inner">
+    <div id="welcome">
+      <div class="wel-icon">✦</div>
+      <h1>Apa yang bisa saya bantu?</h1>
+      <p>Ai ringan & cepat untuk tugas</p>
+    </div>
+  </div>
+</div>
+
+<!-- MODEL PICKER -->
+<div id="model-picker">
+  <div class="mpick-label">Pilih Model</div>
+  <div class="mpick-item" data-model="nano-free" onclick="selectModel(this)">
+    <div class="mpick-dot"></div>
+    <div class="mpick-text">
+      <div class="mpick-name">Nano 1.1 <span style="font-size:9px;background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:5px;color:var(--text2);font-weight:600">Free</span></div>
+      <div class="mpick-sub">Cepat & gratis · Groq</div>
+    </div>
+  </div>
+  <div class="mpick-item" data-model="nano-pro" onclick="selectModel(this)">
+    <div class="mpick-dot"></div>
+    <div class="mpick-text">
+      <div class="mpick-name">Nano 1.1 Pro <span class="mpick-pro-tag">⭐ PRO</span></div>
+      <div class="mpick-sub">Lebih pintar · Gemini 2.5 Flash</div>
+    </div>
+  </div>
+</div>
+
+<!-- INPUT -->
+<div class="bottom-nav">
+  <div class="input-wrapper">
+    <div id="img-preview-area">
+      <img id="img-thumb" src="" alt="">
+      <span style="font-size:11px;color:#888">Gambar siap dikirim</span>
+      <button id="img-clear" onclick="clearImage()">✕</button>
+    </div>
+    <textarea id="user-input" placeholder="Pesan..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <div class="input-bottom">
+      <div class="input-left">
+        <button class="ipt-btn" onclick="pickImage()" title="Kirim Gambar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </button>
+        <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImageSelect(event)">
+        <button id="think-btn" onclick="toggleThink()">
+          <div class="think-icon"></div>
+          <span id="think-label">Berpikir</span>
+        </button>
+        <button class="model-bubble" id="model-bubble" onclick="toggleModelPicker(event)">
+          <div class="model-bubble-dot"></div>
+          <span id="model-bubble-text">Nano 1.1</span>
+        </button>
+      </div>
+      <button id="send-btn" onclick="handleAction()" disabled>
+        <svg id="send-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="3">
+          <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profile-modal">
+  <div class="prf-box">
+    <div class="prf-drag"></div>
+    <div class="prf-top">
+      <div class="prf-title">✦ Edit Profil</div>
+      <button class="prf-close" onclick="closeProfile()">✕</button>
+    </div>
+    <div class="prf-body">
+      <div class="prf-user-card" id="prf-user-card">
+        <div class="prf-user-av" id="prf-user-av">?</div>
+        <div>
+          <div class="prf-user-name" id="prf-user-name">—</div>
+          <div class="prf-user-email" id="prf-user-email">—</div>
+          <div class="prf-user-role free" id="prf-user-role">Free</div>
+        </div>
+      </div>
+      <div class="prf-section">
+        <div class="prf-label">
+          API Key Gemini
+          <span class="prf-badge">OPSIONAL</span>
+        </div>
+        <div class="prf-inp-icon">
+          <span class="prf-inp-ico">🔑</span>
+          <input class="prf-inp" id="prf-apikey-gemini" placeholder="AIzaSy..." type="password" style="padding-left:38px">
+        </div>
+        <div class="prf-hint">Untuk Nano 1.1 Pro. Kosongkan = pakai key bawaan.</div>
+      </div>
+      <div class="prf-section">
+        <div class="prf-label">
+          API Key Groq
+          <span class="prf-badge">OPSIONAL</span>
+        </div>
+        <div class="prf-inp-icon">
+          <span class="prf-inp-ico">⚡</span>
+          <input class="prf-inp" id="prf-apikey-groq" placeholder="gsk_..." type="password" style="padding-left:38px">
+        </div>
+        <div class="prf-hint">Untuk Nano 1.1 Free. Kosongkan = pakai key bawaan.</div>
+      </div>
+      <div class="prf-actions">
+        <button class="prf-save" onclick="saveProfile()">Simpan</button>
+        <button class="prf-danger" onclick="logout()">Keluar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div id="login-modal">
+  <div class="login-bg"></div>
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="login-brand-icon">✦</div>
+      <div class="login-brand-name">SafeGPT</div>
+      <div class="login-brand-sub" id="login-brand-sub">Asisten AI cerdas yang aman dan terpercaya</div>
+    </div>
+    <div class="login-form-title" id="login-form-title">Masuk ke akun Anda</div>
+    <div class="login-field" id="field-name" style="display:none">
+      <div class="login-field-label">Nama</div>
+      <div class="login-inp-wrap">
+        <span class="login-inp-ico">👤</span>
+        <input class="login-inp" id="login-name" placeholder="Nama lengkap Anda">
+      </div>
+    </div>
+    <div class="login-field">
+      <div class="login-field-label">Email</div>
+      <div class="login-inp-wrap">
+        <span class="login-inp-ico">✉️</span>
+        <input class="login-inp" id="login-email" placeholder="email@contoh.com" type="email">
+      </div>
+    </div>
+    <div class="login-field">
+      <div class="login-field-label">Password</div>
+      <div class="login-inp-wrap">
+        <span class="login-inp-ico">🔒</span>
+        <input class="login-inp" id="login-pass" placeholder="Password Anda" type="password" onkeydown="if(event.key==='Enter')doAuth()">
+      </div>
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" id="login-btn" onclick="doAuth()">Masuk →</button>
+    <div class="login-switch" id="login-switch" onclick="toggleAuthMode()">
+      Belum punya akun? <span>Daftar gratis</span>
+    </div>
+  </div>
+</div>
+
+<!-- REDEEM MODAL -->
+<div id="redeem-modal">
+  <div class="rdm-box">
+    <div class="rdm-top">
+      <div class="rdm-title"><span class="rdm-crown">👑</span> Aktifkan Premium</div>
+      <button class="rdm-close" onclick="closeRedeem()">✕</button>
+    </div>
+    <div class="rdm-sub">Masukkan kode premium untuk menggunakan <strong>Nano 1.1 Pro</strong> (Gemini 2.5 Flash).</div>
+    <input class="rdm-inp" id="rdm-code" placeholder="Masukkan kode aktivasi...">
+    <div class="rdm-err" id="rdm-err"></div>
+    <button class="rdm-btn" onclick="doRedeem()">✦ Aktifkan</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+      </html>
+  
